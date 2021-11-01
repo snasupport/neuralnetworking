@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>AI Matrix</title>
+    <meta name="description" content="Webpage for Peter Schmitt">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.js"></script>
+    <script src="../library/matrix.js"></script>
+    <script src="../library/nn.js"></script>
+    <script src="../library/logger.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js" integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+    <link rel="stylesheet" href="/style.css">
+    </link>
+    <script src="/nav.js" defer></script>
+    <script src="/library/include.js" defer></script>
+</head>
+
+<body>
+    <div w3-include-html="/nav.html"></div>
+    <div style="padding:1rem">
+        <h2> Neural Networks</h2>
+        <img src="../neural1.jpg" style="width:300px" />
+        <div style="max-width:500px;">
+            <!-- Feed forward ---------------------------->
+            <h4>Feed Forward</h4>
+            The elements of a given layer vector are calculated with a simple linear formula \( y = m*x + b\) where y, x and b are vectors and m is a matrix. In our case we denote the layer numbering with a superscript L:
+            <div>
+                \[ z^L = w^L * a^{L-1} + b^L\]
+            </div>
+            <ul>
+                <li>\( z^L\): is the temporary vector result of the matrix multiplicatin</li>
+                <li>\( w^L\): is the weight matrix. These are the elemens that need to be fitted</li>
+                <li>\( a^{L-1}\): is the vector of the previous layer (or the input values)</li>
+                <li>\( b^L\): is the bias vector and always 1</li>
+            </ul>
+            The next step is to feed every element of \( z^L\) into an activation function Here we use the sigmoid \( y = \frac{1}{1+e^{-x} } \).
+            <div>
+                \[ a^L = \sigma(z^L) \]
+            </div>
+            <ul>
+                <li>\( a^{L}\): is the vector of the current layer</li>
+                <li>\(\sigma(x)\) : is the sigmoid function is applied to every element of a vector resulting in a new vector</li>
+            </ul>
+            <!-- Backwad propagation ---------------------------->
+
+            <h4>Traning and Backward Propagation</h4>
+            <h4>Error a/divd Cost</h4>
+            The last layer is called the output layer:
+            <div>
+                \[ o = a^{Last}\]
+            </div>
+            The total cost defines how far away the calculated result of the feed forward process is from the real values (target)
+            <div>
+                \[ e = t - o\]
+            </div>
+            <div>
+                \[ c = e*e\]
+            </div>
+            <ul>
+                <li>\( e\): is the error vector</li>
+                <li>\( t\): is the target vector = known values for given input</li>
+                <li>\( c \): is the overall cost (dot product of error)</li>
+            </ul>
+
+
+
+
+            \[ \frac{\partial c}{\partial w^L} = \frac{\partial z^L}{\partial w^L} *\frac{\partial a^L}{\partial z^L} *\frac{\partial C}{\partial a^L} \]
+            <div> Where</div>
+            \[ \frac{\partial z^L}{\partial w^L} = 2(a^l-t) \]
+            <div></div>
+            \[ \frac{\partial a^L}{\partial z^L} = \sigma'(z^L) \]
+            <div></div>
+            \[\frac{\partial C}{\partial a^L} = a^{L-1} \]
+            <div>For the sigmoid function</div>
+            \[ \sigma'(x) = \sigma(x)*(1-\sigma(x))\]
+            <div>To calculate now the change applied to the weight of the previous layer we use:</div>
+            \[ dw^{L-1} = \sigma{(z^{L-1})^{\dagger}} \odot (1-\sigma{(z^{L-1})^{\dagger}} * e * lr \]
+            <div>Or further simplified</div>
+            \[ dw^{L-1} = (a^{L-1})^{\dagger} \odot (1-(a^{L-1})^{\dagger} * e * lr \]
+            <div>Some notes here</div>
+            <ul>
+                <li>lr: is the learning rate (for example 0.1) as you do not want to change all the way</li>
+                <li>The \( \odot \) sign implies element wise application of a function</li>
+                <li>The \( \dagger \) sign is the transpose of the vector = 1 row, many columns</li>
+                <li>\( e \) is the error vector</li>
+            </ul>
+            \[ dw^{L-1} = (a_1 * (1-a_1), a_2 * (1-a_2) ....) * \left( \begin{array}{c} e_1\\ e_2\\ ...\\ \end{array} \right) * lr\]
+            <div>
+
+            </div>
+        </div>
+
+        <div id="ll"></div>
+    </div>
+    <script>
+        function getMatrix(rows, cols) {
+            if (rows == 4 && cols == 1) {
+                res = new Matrix(4, 1);
+                res.matrix[0] = [0.2];
+                res.matrix[1] = [0.3];
+                res.matrix[2] = [0.4];
+                res.matrix[3] = [0.5];
+                return res;
+            }
+            if (rows == 1 && cols == 4) {
+                res = new Matrix(1, 4);
+                res.matrix[0] = [0.2, 0.3, 0.4, 0.5];
+                return res;
+            }
+            if (rows == 1 && cols == 1) {
+                res = new Matrix(1, 1);
+                res.matrix[0] = [0.6];
+                return res;
+            }
+            if (rows == 4 && cols == 2) {
+                res = new Matrix(4, 2);
+                res.matrix[0] = [0.2, 0.3];
+                res.matrix[1] = [0.3, 0.4];
+                res.matrix[2] = [0.4, 0.5];
+                res.matrix[3] = [0.5, 0.6];
+                return res;
+            }
+        }
+        let l = new Logger("ll");
+        l.log("Create a neural network");
+
+        let nn = new NeuralNetwork(2, 4, 1);
+        nn.w_ih = getMatrix(4, 2);
+        nn.bias_h = getMatrix(4, 1);
+        nn.w_ho = getMatrix(1, 4);
+        nn.bias_o = getMatrix(1, 1);
+
+        l.log("Neural Network with " + nn.n_inputs + " input nodes, " + nn.n_hidden + " hidden nodes, and " + nn.n_outputs + " output nodes");
+        l.log("");
+        l.table(nn.w_ih.matrix, "Weights input hidden");
+        l.table(nn.bias_h.matrix, "Bias hidden");
+        l.table(nn.hidden0.matrix, "Hidden nodes");
+        l.table(nn.w_ho.matrix, "Weights hidden output");
+        l.table(nn.bias_o.matrix, "Bias output");
+
+        l.log("Train neural network")
+        let input_array = [0, 1];
+        let targets = [1];
+        l.log("First do a feed forward");
+        nn.feedforward(input_array);
+        l.table(nn.inputs.matrix, "input");
+        l.table(nn.w_ih.matrix, "Weights input hidden");
+        l.table(nn.bias_h.matrix, "Bias hidden");
+        l.table(nn.hidden0.matrix, "Hidden nodes");
+        l.table(nn.hidden.matrix, "Hidden nodes act");
+        l.table(nn.w_ho.matrix, "Weights hidden output");
+        l.table(nn.bias_o.matrix, "Bias output");
+        l.table(nn.outputs0.matrix, "Outputs");
+
+        l.log("Now do a training");
+        nn.train(input_array, targets);
+
+        l.table(nn.inputs.matrix, "input");
+        l.table(nn.outputs.matrix, "Outputs act");
+        l.table(nn.targets.matrix, "Target");
+        l.table(nn.errors.matrix, "Errors");
+        l.log("cost = " + nn.cost);
+
+        l.log("Backward Propoagation");
+        l.table(nn.gradient0.matrix, "gradient0 dsig");
+        l.table(nn.gradient1.matrix, "gradient1 * errors");
+        l.table(nn.gradient2.matrix, "gradient2 * lr");
+        l.table(nn.hiddenT.matrix, "hiddenT");
+        l.table(nn.dW_ho.matrix, "dWeights_ho");
+        l.table(nn.w_ho.matrix, "weights_ho");
+
+        l.log("Backward hidden -> Input");
+        l.table(nn.w_ho_T.matrix, "w_ho_T");
+        l.table(nn.hidden_errors.matrix, "hidden_errors");
+        l.table(nn.hgradient0.matrix, "hgradient0");
+        l.table(nn.hgradient1.matrix, "hgradient1");
+        l.table(nn.hgradient2.matrix, "hgradient2");
+        l.table(nn.inputT.matrix, "inputT");
+        l.table(nn.dW_ih.matrix, "dW_ih");
+        l.table(nn.w_ih.matrix, "w_ih");
+
+        l.log("Now do a feed forward,calculate cost and see whether the cost is less");
+        //nn.calccost(input_array, targets);
+        l.table(nn.inputs.matrix, "input");
+        l.table(nn.w_ih.matrix, "Weights input hidden");
+        l.table(nn.bias_h.matrix, "Bias hidden");
+        l.table(nn.hidden0.matrix, "Hidden nodes");
+        l.table(nn.hidden.matrix, "Hidden nodes act");
+        l.table(nn.w_ho.matrix, "Weights hidden output");
+        l.table(nn.bias_o.matrix, "Bias output");
+        l.table(nn.outputs0.matrix, "Outputs");
+        l.table(nn.inputs.matrix, "input");
+        l.table(nn.outputs.matrix, "Outputs act");
+        l.table(nn.targets.matrix, "Target");
+        l.table(nn.errors.matrix, "Errors");
+        l.log("cost = " + nn.cost);
+        l.log("The cost should now be smaller!!!");
+
+        l.log("Ok, now try again with many iterations");
+        let ds = [{
+            inputs: [1, 0],
+            outputs: [1]
+        }, {
+            inputs: [0, 1],
+            outputs: [1]
+        }, {
+            inputs: [1, 1],
+            outputs: [0]
+        }, {
+            inputs: [0, 0],
+            outputs: [0]
+        },];
+
+            // let nn2 = new NeuralNetwork(2, 2, 1);
+            // for (let i = 0; i < 1000; i++) {
+            //     for (let data of ds) {
+            //         nn2.train(data.inputs, data.outputs)
+            //     }
+            // }
+            // for (let data of ds) {
+            //     let guess = nn2.feedforward(data.inputs);
+            //     l.log("Inputs: " + data.inputs[0] + ", " + data.inputs[1] + " with result: " + nn2.outputs.matrix[0][0]);
+            // }
+    </script>
+    <script>window.onload = () => { includeHTML(); };</script>
+</body>
+
+</html>

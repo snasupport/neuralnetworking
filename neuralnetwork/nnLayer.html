@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="/style.css">
+    </link>
+    <script src="../library/p5.min.js"></script>
+    <script src="../library/p5.dom.min.js"></script>
+    <script src="../library/nn3.js"></script>
+    <script src="../library/matrix.js"></script>
+    <script src="/nav.js" defer></script>
+    <script src="/library/include.js" defer></script>
+</head>
+
+<body>
+    <div w3-include-html="/nav.html"></div>
+    <a href="../index.html">Home</a>
+    <div style="padding:1rem">
+        <h3>Neural Network Test using Exclusive Or</h3>
+        Train a network with 2 inuts, 4 hidden nodes and 1 output to recognize XOR.
+        <br>Train the network with inputs/targets: [0,0] = 0;[0,1] = 1;[1,0] = 1;[1,1] = 0;
+        <br>Display the result with in a graph where x = 0 -> 1 and y = 0 -> 1;
+        <br>Adjust the learning rate with a slider:
+        <br><br>
+        <div id="buttons"></div>
+        <br>
+        <div id="output"></div>
+        Adjust the learning rate<br>
+        <div id="slider"></div>
+        <div id="slider2"></div>
+        <div id="cost"></div>
+        <div id="sketch"></div>
+    </div>
+
+    <script>
+        let nn;
+        let lr_slider;
+
+        let data = [{
+            inputs: [0, 0],
+            outputs: [0]
+        }, {
+            inputs: [0, 1],
+            outputs: [1]
+        }, {
+            inputs: [1, 0],
+            outputs: [1]
+        }, {
+            inputs: [1, 1],
+            outputs: [0]
+        }];
+
+        function startDraw() {
+            loop();
+        }
+
+        function stopDraw() {
+            noLoop();
+        }
+
+        function init() {
+            nn = new NeuralNetwork([2, 4, 4, 1]);
+            console.log("neural network with 2,4,1");
+            ncounter = 0;
+            // nn.feedForward(data[1].inputs);
+            // for (let i = 0; i < 10; i++) {
+            //     console.log("Cost at step " + i + "  :  " + nn.getCost(data[1].inputs, data[1].outputs));
+            //     nn.train(data[1].inputs, data[1].outputs);
+            // }
+        }
+
+        function setup() {
+            //start drawing
+            btnStart = createButton('start');
+            btnStart.parent("buttons");
+            btnStart.style('margin-right', '20px');
+            btnStart.mousePressed(() => {
+                loop();
+            });
+
+            //stop drawing
+            btnStop = createButton('stop');
+            btnStop.parent("buttons");
+            btnStop.style('margin-right', '20px');
+            btnStop.mousePressed(() => {
+                noLoop();
+            });
+
+            // reset
+            btnReset = createButton('reset');
+            btnReset.parent("buttons");
+            btnReset.mousePressed(() => {
+                init();
+            });
+
+            let canvas = createCanvas(400, 400);
+            canvas.parent("sketch");
+
+            init();
+            //nn = new NeuralNetwork(2, 4, 1);
+            //console.log("neural network with 2,4,1")
+
+
+            lr_slider = createSlider(0.01, 0.5, 0.1, 0.01);
+            lr_slider.parent("slider");
+            divlr = createDiv('').size(200, 20);
+            divlr.parent("slider2");
+
+            div = createDiv('').size(400, 20);
+            div.parent("output");
+
+            divCost = createDiv('Cost: ').size(100, 20);
+            divCost.parent("cost");
+
+            //ncounter = 0;
+            noLoop();
+        }
+
+
+
+        function draw() {
+            background(35);
+            ncounter++;
+            nTest = 10;
+            div.html("Number of training steps: " + ncounter * nTest);
+
+            for (let i = 0; i < nTest; i++) {
+                let d = random(data);
+                nn.train(d.inputs, d.outputs);
+            }
+            let cost = nn.cost;
+            divCost.html("Cost: " + cost.toFixed(5));
+
+            nn.setLearningRate(lr_slider.value());
+            divlr.html("Learning rate: " + lr_slider.value());
+
+            let resolution = 40;
+            let cols = width / resolution;
+            let rows = height / resolution;
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    let x1 = i / cols;
+                    let x2 = j / rows;
+                    let inputs = [x1, x2];
+                    let y = nn.feedForward(inputs);
+                    yn = y.matrix[0][0];
+                    noStroke();
+                    fill(yn * 255);
+                    rect(i * resolution, j * resolution, resolution, resolution);
+                }
+            }
+
+        }
+    </script>
+    <script>window.onload = () => { includeHTML(); };</script>
+</body>
+
+</html>

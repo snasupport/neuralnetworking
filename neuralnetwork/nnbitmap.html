@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="../library/p5.js"></script>
+    <script src="../library/p5.dom.min.js"></script>
+    <script src="../library/nn3.js"></script>
+    <script src="../library/matrix.js"></script>
+</head>
+
+<body>
+    <a href="../index.html">Home</a>
+    <h3>Neural Network Test with bitmap</h3>
+
+    <div id="sketch"></div>
+    <script>
+        var data;
+
+        function preload() {
+            data = loadBytes('../data/car5.npy', onFileload);
+
+        }
+
+        function onFileload() {
+            for (let i = 0; i < 5; i++) {
+                console.log(data.bytes[i].toString(16));
+            }
+        }
+
+        function setup() {
+            //start drawing
+            let canvas = createCanvas(400, 400);
+            canvas.parent("sketch");
+
+            let total = 5;
+            let start = data.bytes.length - 5 * 784;
+            for (let n = 0; n < total; n++) {
+                let img = createImage(28, 28);
+                img.loadPixels();
+                let offset = n * 784;
+                for (let i = 0; i < 784; i++) {
+                    let val = 255 - data.bytes[i + offset + start];
+                    img.pixels[i * 4 + 0] = val;
+                    img.pixels[i * 4 + 1] = val;
+                    img.pixels[i * 4 + 2] = val;
+                    img.pixels[i * 4 + 3] = 255;
+                }
+                img.updatePixels();
+                let x = (n % 10) * 28;
+                let y = floor(n / 10) * 28;
+                image(img, x, y);
+            }
+
+
+            noLoop();
+        }
+
+
+
+        function draw() {
+            //background(35);
+        }
+    </script>
+</body>
+
+</html>

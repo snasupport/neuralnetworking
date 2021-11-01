@@ -1,0 +1,202 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>AI Matrix</title>
+    <meta name="description" content="Webpage for Peter Schmitt">
+    <link rel="stylesheet" href="/style.css">
+</link>
+    <script src="/library/tester.js"></script>
+    <script src="/library/matrix.js"></script>
+    <script src="/nav.js" defer></script>
+    <script src="/library/include.js" defer></script>
+</head>
+
+<body>
+    <div w3-include-html="/nav.html"></div>
+    <h1>Testing the Matrix Class</h1>
+    See the inspection log for the specifc tables used in the test
+    <div id="ta" rows=50 cols=50></div>
+    <script>
+        sum = function (a, b) {
+            return a + b;
+        }
+        boolAnd = function (a, b) {
+            return a && b;
+        }
+        getMatrix = function (index) { // specific matrix for testing
+            if (index == 1) return Matrix.fromArray([[1, 2, 3], [3, 1, 4], [2, 3, 1]]);
+            if (index == 2) return Matrix.fromArray([[1, 4, 9], [9, 1, 16], [4, 9, 1]]);
+            if (index == 3) return Matrix.fromArray([[-1, 2, -3], [3, -1, 4], [2, 3, -1]]);
+            if (index == 4) return Matrix.fromArray([[1, -1, -300.2], [3.33333333, 1.1, -4.1], [2.0, 3.231, 0.1]]);
+            if (index == 5) return Matrix.fromArray([[1, 2], [3, 1], [2, 3]]);
+            if (index == 6) return Matrix.fromArray([[1, 2, 5, 6], [3, 1, 4, 3]]);
+            if (index == 7) return Matrix.fromArray([[7, 4, 13, 12], [6, 7, 19, 21], [11, 7, 22, 21]]);
+            if (index == 8) return Matrix.fromArray([[5, 10], [15, 5], [10, 15]]);
+            if (index == 9) return Matrix.fromArray([[1, 3], [2, 1], [5, 4], [6, 3]]);
+
+        }
+
+        getVector = function (index) { // specific vectors (matrix with 1 column)
+            if (index == 1) return Matrix.fromArray([1, 4, 2]);
+            if (index == 2) return Matrix.fromArray([1, 16, 4]);
+            if (index == 3) return Matrix.fromArray([1.1, 4.3, 2.22324]);
+            if (index == 4) return Matrix.fromArray([1, 0.0003, 2.205]);
+            if (index == 5) return Matrix.fromArray([2, 8, 4]);
+            if (index == 6) return Matrix.fromArray([6, 9, 7]);
+        }
+        log = function (text, matrix) {
+            console.log(text);
+            console.table(matrix.matrix);
+        }
+
+        let result = "";
+
+        let t = new Tester();
+
+        t.describe("Testing a simple sum function", () => {
+            t.test("Test the sum of 4 and 5", () => {
+                let a = 4;
+                let b = 5;
+                let c = 9;
+                t.expect(this.sum(a, b)).toBe(c);
+            })
+        });
+
+        t.describe("Testing the Matrix Class", () => {
+            t.test("Constructor: Create an empty matrix of 3 * 1 (Vector)", () => {
+                let m = new Matrix(3, 1);
+                log("Create a 3 * 1 matrix", m);
+                t.expect(m.matrix[2][0]).toBe(0);
+            });
+
+            t.test("Constructor: Create an empty matrix of 3 * 3", () => {
+                let m = new Matrix(3, 3);
+                log("Create a 3 * 3 matrix", m);
+                t.expect(m.matrix[2][2]).toBe(0);
+            });
+
+            t.test("Function randomize: Randomize a 3 * 3 matrix", () => {
+                let m = new Matrix(3, 3);
+                m = m.randomize();
+                log("Create a 3 * 3 matrix", m);
+                t.expect(m.matrix[2][2]).notToBe(0);
+                t.expect(m.matrix[2][2]).toBeGreaterThan(-1);
+                t.expect(m.matrix[2][2]).toBeLessThan(1);
+            });
+
+            t.test("Function fromArray: Create a specific 3 * 1 matrix", () => {
+                let m = Matrix.fromArray([1, 4, 2]);
+                log("Create a specific 3 * 1 matrix", m);
+                t.expect(m.matrix[0][0]).toBe(1);
+                t.expect(m.matrix[1][0]).toBe(4);
+                t.expect(m.matrix[2][0]).toBe(2);
+            });
+
+            t.test("Function fromArray: Create a specific 3 * 3 matrix", () => {
+                let m = Matrix.fromArray([[1, 3, 2], [4, 2, 7], [3, 1, 6]]);
+                log("Create a specific 3 * 3 matrix", m);
+                t.expect(m.matrix[0][0]).toBe(1);
+                t.expect(m.matrix[1][0]).toBe(4);
+                t.expect(m.matrix[2][0]).toBe(3);
+            });
+
+            t.test("Function hadamard: Multiply vector elementwise", () => {
+                let m = getVector(1);
+                let m2 = getVector(2);
+
+                t.expect(m.hadamard(m)).toBeEqual(m2);
+
+                log("A specific vector", m);
+                log("The hadamard square vector", m2);
+            });
+
+            t.test("Function hadamard: Multiply matrix elementwise", () => {
+                let m = getMatrix(1);
+                log("A specific matrix", m);
+                let m2 = getMatrix(2);
+                log("The hadamard square matrix", m2);
+                t.expect(m.hadamard(m)).toBeEqual(m2);
+            });
+
+            t.test("Function multiply: Multiply 3*2 matrix with 2*4 matrix ", () => {
+                let m = getMatrix(5);
+                let m2 = getMatrix(6);
+                let m3 = m.multiply(m2);
+                let mr = getMatrix(7);
+                t.expect(m.multiply(m2)).toBeEqual(mr);
+
+                log("A specific 3*2 matrix", m);
+                log("The specific 2*4 matrix", m2);
+                log("The result is a 3*4 matrix", m3);
+            });
+
+            t.test("Function scalar: Multiply 3*2 with a scalar (5)", () => {
+                let m = getMatrix(5);
+                let m2 = m.scalar(5);
+                let mr = getMatrix(8);
+                t.expect(m.scalar(5)).toBeEqual(mr);
+
+                log("A specific 3*2 matrix scalar mulitplied with 5", m);
+                log("The result is a matrix", m2);
+            });
+
+            t.test("Function dot: Dot product of two vectors", () => {
+                let m = getVector(1);
+
+                t.expect(m.dot(m)).toBe(21);
+
+                log("The dot product of m with itself is 21", m);
+            });
+
+            t.test("Function add: Add 2 matrices or vectors", () => {
+                let m = getVector(1);
+                let m2 = getVector(5);
+
+                t.expect(m.add(m)).toBeEqual(m2);
+
+                log("A vector", m);
+                log("The sum of a vector with itself", m2);
+            });
+
+            t.test("Function add: Add a matrices with a number", () => {
+                let m = getVector(1);
+                let m2 = getVector(6);
+
+                t.expect(m.add(5)).toBeEqual(m2);
+
+                log("A vector", m);
+                log("Add 5 to every element", m2);
+            });
+
+            t.test("Function sub: Subtract 2 matrices or vectors", () => {
+                let m = getVector(1);
+                let m2 = getVector(5);
+
+                t.expect(m2.sub(m)).toBeEqual(m);
+
+                log("A vector", m2);
+                log("The difference of a vector with", m);
+            });
+
+            t.test("Function transpose: transpose a matrix", () => {
+                let m = getMatrix(6);
+                let m2 = getMatrix(9);
+
+                t.expect(m.transpose()).toBeEqual(m2);
+
+                log("A matrix", m);
+                log("Transposed to ", m2);
+            });
+        });
+
+        result += t.getHTML();
+
+        let ta = document.getElementById("ta");
+        ta.innerHTML = result;
+    </script>
+    <script>window.onload = () => { includeHTML(); };</script>
+</body>
+
+</html>
